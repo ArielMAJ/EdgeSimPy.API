@@ -3,7 +3,7 @@ from typing import Annotated, List
 from api.database.models.users import User
 from api.schemas.user import UserCreate, UserOut
 from api.services.auth import AuthService
-from api.services.user_service import UserService
+from api.services.user import UserService
 from fastapi import APIRouter, Depends
 
 router = APIRouter()
