@@ -1,15 +1,15 @@
 [tool.poetry]
 name = "fastapi-backend-template"
-version = "0.4.1"
+version = "0.1.0"
 description = "A FastAPI backend template."
 authors = ["ArielMAJ <ariel.maj@hotmail.com>"]
 readme = "README.md"
 license = "MIT"
 
 [tool.poetry.dependencies]
-python = "^3.9"
-fastapi = "^0.109.2"
-uvicorn = {extras = ["standard"], version = "^0.27.1"}
+python = "^3.12"
+fastapi = "^0.115.12"
+uvicorn = {extras = ["standard"], version = "^0.34.0"}
 loguru = "^0.7.2"
 httpx = "^0.26.0"
 fastapi-cache2 = "^0.2.1"
