@@ -1,3 +1,6 @@
+CONTAINER_ENGINE := $(shell which podman || which docker)
+COMPOSE := $(CONTAINER_ENGINE) compose
+
 ifneq ("$(wildcard .env)","")
 	include .env
 	export
@@ -20,11 +23,11 @@ test: ## Run automated tests.
 
 .PHONY: up-database
 up-database: ## Start database container.
-	docker compose up -d postgres --force-recreate
+	$(COMPOSE) up -d postgres --force-recreate
 
 .PHONY: down
 down: ## Stop all containers.
-	docker compose down
+	$(COMPOSE) down
 
 .PHONY: revision
 revision: ## Create a new database revision following the repository's models.
@@ -39,12 +42,12 @@ downgrade: ## Undo last database migration.
 	poetry run alembic downgrade -1
 
 .PHONY: docker-rm
-docker-rm: ## Remove all docker containers.
-	docker rm -f $$(docker ps -a -q)
+docker-rm: ## Remove all docker/podman containers.
+	$(CONTAINER_ENGINE) rm -f $$($(CONTAINER_ENGINE) ps -a -q)
 
 .PHONY: docker-rmi
-docker-rmi: ## Remove all downloaded docker images.
-	docker rmi -f $$(docker images -q)
+docker-rmi: ## Remove all downloaded docker/podman images.
+	$(CONTAINER_ENGINE) rmi -f $$($(CONTAINER_ENGINE) images -q)
 
 .PHONY: export-requirements
 export-requirements: ## Export poetry managed packages to a requirements.txt (needed by Vercel).
