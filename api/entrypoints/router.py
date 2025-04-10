@@ -1,5 +1,5 @@
 # from api.entrypoints import auth, user
-from api.entrypoints import background_test
+from api.entrypoints import background_test, simulation
 from fastapi.routing import APIRouter
 
 # user.router.include_router(user.authenticated_router)
@@ -11,3 +11,4 @@ router = APIRouter()
 router.include_router(
     background_test.router, prefix="/background_test", tags=["Background Test"]
 )
+router.include_router(simulation.router, prefix="/simulation", tags=["Simulation"])
