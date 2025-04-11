@@ -27,7 +27,7 @@ class SimulationService:
         seed_value = 428956419
         seed(seed_value)
         np.random.seed(seed_value)
-        queue = multiprocessing.Queue()
+        queue = multiprocessing.SimpleQueue()
 
         simulation_process = multiprocessing.Process(
             target=SimulationService._run_and_process_simulation_in_the_background,
@@ -41,7 +41,7 @@ class SimulationService:
         logger.warning("Simulation process finished")
 
         try:
-            results = queue.get(timeout=1)
+            results = queue.get()
         except multiprocessing.queues.Empty:
             logger.error("No results from simulation process")
             raise AlgorithmException(algorithm.__name__)
@@ -75,7 +75,7 @@ class SimulationService:
             input_file, algorithm
         )
 
-        queue.put(simulator.agent_metrics[metrics_from], timeout=1)
+        queue.put(simulator.agent_metrics[metrics_from])
         logger.warning("End logs inside new proccess.")
 
     @staticmethod
