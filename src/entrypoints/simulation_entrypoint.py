@@ -2,16 +2,16 @@ from fastapi import APIRouter
 from pydantic import HttpUrl
 
 from src.esp_algorithms import algorithm_options
-from src.schemas.simulation_schema import SimulationInput, SimulationServiceOutput
+from src.schemas.simulation_schema import SimulationInput
 from src.services.simulation_service import SimulationService
 
 router = APIRouter()
 
 
-@router.post("/services", response_model=SimulationServiceOutput | None)
+@router.post("/services", response_model=dict | None)
 async def simulation_entrypoint(
     simulation_input: SimulationInput,
-) -> SimulationServiceOutput | None:
+) -> dict | None:
     """
     Endpoint/controller to run the simulation.
     """
