@@ -1,11 +1,12 @@
 import uvicorn
-from api.config import Config
+
+from src.config.env import Config
 
 
 def main() -> None:
     """Entrypoint of the application."""
     uvicorn.run(
-        "api.app:get_app",
+        "src.app:get_app",
         workers=Config.WORKERS_COUNT,
         host=Config.HOST,
         port=Config.PORT,

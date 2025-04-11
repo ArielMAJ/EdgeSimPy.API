@@ -1,14 +1,18 @@
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from api.entrypoints import router
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi_cache import FastAPICache
 from fastapi_cache.backends.inmemory import InMemoryBackend
 from loguru import logger
 
+from src.config.loguru import logger_config
+from src.entrypoints import router
+from src.middleware.logger_middleware import LoggerMiddleware
+
 APP_ROOT = Path(__file__).parent
+logger.configure(**logger_config())
 
 
 @asynccontextmanager
@@ -38,6 +42,10 @@ def get_app() -> FastAPI:
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
+    )
+    _app.add_middleware(
+        LoggerMiddleware,
+        logger=logger,
     )
     _app.include_router(router=router)
 

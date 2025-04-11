@@ -1,10 +1,9 @@
 [tool.poetry]
-name = "fastapi-backend-template"
+name = "edge-sim-py-interface"
 version = "0.1.0"
-description = "A FastAPI backend template."
+description = "A FastAPI backend service for running EdgeSimPy simulations."
 authors = ["ArielMAJ <ariel.maj@hotmail.com>"]
 readme = "README.md"
-license = "MIT"
 
 [tool.poetry.dependencies]
 python = "^3.12"
