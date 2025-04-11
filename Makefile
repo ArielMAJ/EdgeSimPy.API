@@ -8,7 +8,7 @@ endif
 
 .PHONY: run
 run: ## Run the project.
-	poetry run python -m api
+	poetry run python -m src.main
 
 .PHONY: install
 install: ## Install Python package dependencies.
