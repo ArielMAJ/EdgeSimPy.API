@@ -1,3 +1,6 @@
+import json
+from urllib.request import urlopen
+
 from fastapi import APIRouter
 from pydantic import HttpUrl
 
@@ -17,7 +20,7 @@ async def simulation_entrypoint(
     """
     input_file = simulation_input.url_or_json
     if isinstance(input_file, HttpUrl):
-        input_file = str(input_file)
+        input_file = json.loads(urlopen(str(input_file)).read())
     return {
         "Service": await SimulationService.run(
             algorithm=algorithm_options[simulation_input.algorithm],
