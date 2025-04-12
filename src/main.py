@@ -1,3 +1,5 @@
+import multiprocessing
+
 import uvicorn
 
 from src.config.env import Config
@@ -5,6 +7,7 @@ from src.config.env import Config
 
 def main() -> None:
     """Entrypoint of the application."""
+    multiprocessing.set_start_method("spawn")
     uvicorn.run(
         "src.app:get_app",
         workers=Config.WORKERS_COUNT,

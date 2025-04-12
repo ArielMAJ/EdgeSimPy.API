@@ -1,5 +1,5 @@
-# import multiprocessing
 import uuid
+from concurrent.futures import ProcessPoolExecutor
 from random import seed
 from typing import Callable, Optional
 
@@ -9,8 +9,7 @@ from fastapi_cache.decorator import cache
 from loguru import logger
 
 from src.config.loguru import logger_config
-
-# from src.exceptions.http_exceptions import AlgorithmException
+from src.exceptions.http_exceptions import AlgorithmException
 from src.middleware.logger_middleware import REQUEST_UUID
 from src.schemas.algorithm_parameters import AlgorithmInputParameters
 from src.schemas.simulation_schema import SimulationServiceOutput
@@ -29,27 +28,24 @@ class SimulationService:
         seed_value = 428956419
         seed(seed_value)
         np.random.seed(seed_value)
-        # queue = multiprocessing.SimpleQueue()
+        logger.warning("Starting simulation process")
 
-        # simulation_process = multiprocessing.Process(
-        #     target=SimulationService._run_and_process_simulation_in_the_background,
-        #     args=(queue, input_file, algorithm, REQUEST_UUID.get(), metrics_from),
-        # )
-        # logger.warning("Starting simulation process")
-        # simulation_process.start()
-        # logger.warning("Waiting for simulation process to finish")
-        # simulation_process.join()
-
-        results = await SimulationService._run_and_process_simulation_in_the_background(
-            input_file, algorithm, REQUEST_UUID.get(), metrics_from
-        )
-        # logger.warning("Simulation process finished")
-
-        # try:
-        #     results = queue.get()
-        # except multiprocessing.queues.Empty:
-        #     logger.error("No results from simulation process")
-        #     raise AlgorithmException(algorithm.__name__)
+        try:
+            with ProcessPoolExecutor() as executor:
+                future = executor.submit(
+                    SimulationService._run_and_process_simulation_in_the_background,
+                    input_file,
+                    algorithm,
+                    REQUEST_UUID.get(),
+                    metrics_from,
+                )
+                logger.warning("Waiting for simulation process to finish")
+                results = future.result()
+        except Exception:
+            logger.error(
+                f"There was an error in the simulation process for {algorithm.__name__}"
+            )
+            raise AlgorithmException(algorithm.__name__)
 
         logger.warning(f"Simulation results: {type(results)}")
         return results
@@ -65,8 +61,7 @@ class SimulationService:
         )
 
     @staticmethod
-    async def _run_and_process_simulation_in_the_background(
-        # queue: multiprocessing.Queue,
+    def _run_and_process_simulation_in_the_background(
         input_file: str | dict,
         algorithm: Callable[[Optional[dict | AlgorithmInputParameters]], None],
         request_uuid: uuid.UUID | None = None,
@@ -76,7 +71,7 @@ class SimulationService:
         logger.configure(**logger_config())
         logger.warning("Start logs inside new proccess.")
 
-        agent_metrics: dict = await SimulationService._run_simulation_in_background(
+        agent_metrics: dict = SimulationService._run_simulation_in_background(
             input_file, algorithm
         )
 
@@ -85,8 +80,7 @@ class SimulationService:
         return agent_metrics[metrics_from]
 
     @staticmethod
-    @cache(expire=60 * 5)
-    async def _run_simulation_in_background(
+    def _run_simulation_in_background(
         input_file: str | dict,
         algorithm: Callable[[Optional[dict | AlgorithmInputParameters]], None],
     ) -> dict:
