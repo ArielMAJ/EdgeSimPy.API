@@ -1,4 +1,4 @@
-# import multiprocessing
+import multiprocessing
 import uuid
 from random import seed
 from typing import Callable, Optional
@@ -9,11 +9,11 @@ from fastapi_cache.decorator import cache
 from loguru import logger
 
 from src.config.loguru import logger_config
-
-# from src.exceptions.http_exceptions import AlgorithmException
+from src.exceptions.http_exceptions import AlgorithmException
 from src.middleware.logger_middleware import REQUEST_UUID
 from src.schemas.algorithm_parameters import AlgorithmInputParameters
 from src.schemas.simulation_schema import SimulationServiceOutput
+from src.services.logging_service import LoggingService
 from src.utils.enums import SimulationResultOptions
 
 
@@ -22,37 +22,40 @@ class SimulationService:
     @cache(expire=60 * 5)
     async def run(
         algorithm: Callable[[Optional[dict | AlgorithmInputParameters]], None],
-        input_file: str | dict,
+        input_file: dict,
         metrics_from: SimulationResultOptions,
     ) -> SimulationServiceOutput | None:
         logger.info(f">>>>>> [{algorithm.__name__}] <<<<<<")
         seed_value = 428956419
         seed(seed_value)
         np.random.seed(seed_value)
-        # queue = multiprocessing.SimpleQueue()
+        logger.warning("Starting simulation process")
 
-        # simulation_process = multiprocessing.Process(
-        #     target=SimulationService._run_and_process_simulation_in_the_background,
-        #     args=(queue, input_file, algorithm, REQUEST_UUID.get(), metrics_from),
-        # )
-        # logger.warning("Starting simulation process")
-        # simulation_process.start()
-        # logger.warning("Waiting for simulation process to finish")
-        # simulation_process.join()
+        request_uuid = REQUEST_UUID.get()
 
-        results = await SimulationService._run_and_process_simulation_in_the_background(
-            input_file, algorithm, REQUEST_UUID.get(), metrics_from
+        process = multiprocessing.Process(
+            target=SimulationService._run_and_process_simulation_in_the_background,
+            args=(input_file, algorithm, request_uuid),
         )
-        # logger.warning("Simulation process finished")
+        logger.warning("Starting simulation process in the background")
+        process.start()
+        logger.warning("Waiting for simulation process to finish")
+        process.join()
+        logger.warning("Simulation process finished")
+        if process.exitcode != 0:
+            logger.error(
+                f"There was an error in the simulation process for {algorithm.__name__}"
+            )
+            raise AlgorithmException(algorithm.__name__)
 
-        # try:
-        #     results = queue.get()
-        # except multiprocessing.queues.Empty:
-        #     logger.error("No results from simulation process")
-        #     raise AlgorithmException(algorithm.__name__)
-
+        logger.warning("Fetching simulation results")
+        results = await LoggingService.get_log(request_uuid)
         logger.warning(f"Simulation results: {type(results)}")
-        return results
+
+        if results is None:
+            return None
+
+        return results.get(metrics_from, [])
 
     @staticmethod
     def stopping_criterion(model):
@@ -65,31 +68,15 @@ class SimulationService:
         )
 
     @staticmethod
-    async def _run_and_process_simulation_in_the_background(
-        # queue: multiprocessing.Queue,
-        input_file: str | dict,
+    def _run_and_process_simulation_in_the_background(
+        input_file: dict,
         algorithm: Callable[[Optional[dict | AlgorithmInputParameters]], None],
         request_uuid: uuid.UUID | None = None,
-        metrics_from: SimulationResultOptions = SimulationResultOptions.SERVICE,
     ) -> SimulationServiceOutput:
         REQUEST_UUID.set(request_uuid)
         logger.configure(**logger_config())
         logger.warning("Start logs inside new proccess.")
 
-        agent_metrics: dict = await SimulationService._run_simulation_in_background(
-            input_file, algorithm
-        )
-
-        # queue.put(simulator.agent_metrics[metrics_from])
-        logger.warning("End logs inside new proccess.")
-        return agent_metrics[metrics_from]
-
-    @staticmethod
-    @cache(expire=60 * 5)
-    async def _run_simulation_in_background(
-        input_file: str | dict,
-        algorithm: Callable[[Optional[dict | AlgorithmInputParameters]], None],
-    ) -> dict:
         simulator: esp.Simulator = esp.Simulator(
             tick_duration=1,
             tick_unit="seconds",
@@ -99,6 +86,15 @@ class SimulationService:
         )
 
         simulator.initialize(input_file=input_file)
+        logger.info(f"Starting simulation with algorithm: {algorithm.__name__}")
 
         simulator.run_model()
-        return simulator.agent_metrics
+
+        LoggingService.save_log(
+            request_uuid,
+            input_file,
+            simulator.agent_metrics,
+            algorithm.__name__,
+        )
+
+        logger.warning("End logs inside new proccess.")

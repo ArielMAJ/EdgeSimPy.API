@@ -17,3 +17,6 @@ class Config:
     WORKERS_COUNT = int(os.getenv("WORKERS_COUNT", "1"))
     RELOAD = os.getenv("RELOAD", "false").lower() == "true"
     LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
+
+    LOGGER_API_URL: str = os.getenv("LOGGER_API_URL")
+    LOGGER_API_KEY: str = os.getenv("LOGGER_API_KEY")
