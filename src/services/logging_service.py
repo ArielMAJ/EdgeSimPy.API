@@ -17,7 +17,7 @@ class LoggingService:
         Get the log from the logger service.
         """
         logger.info(f"Fetching log with hash: {hash}")
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(timeout=11) as client:
             response = await client.get(
                 f"{Config.LOGGER_API_URL}/log/{hash}/metrics",
                 headers={"API-KEY": Config.LOGGER_API_KEY},
@@ -50,7 +50,7 @@ class LoggingService:
             agent_metrics=agent_metrics,
             algorithm=algorithm_name,
         )
-        with httpx.Client() as client:
+        with httpx.Client(timeout=11) as client:
             response = client.post(
                 f"{Config.LOGGER_API_URL}/log/",
                 json=log.model_dump(),
