@@ -7,7 +7,7 @@ from fastapi_cache import FastAPICache
 from fastapi_cache.backends.inmemory import InMemoryBackend
 from loguru import logger
 
-from src.config.loguru import logger_config
+from src.configs.loguru import logger_config
 from src.entrypoints import router
 from src.middleware.logger_middleware import LoggerMiddleware
 

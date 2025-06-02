@@ -2,7 +2,7 @@ import multiprocessing
 
 import uvicorn
 
-from src.config.env import Config
+from src.configs.env import Config
 
 
 def main() -> None:

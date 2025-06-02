@@ -21,9 +21,17 @@ install: ## Install Python package dependencies.
 test: ## Run automated tests.
 	ENVIRONMENT=test poetry run pytest --cov
 
+.PHONY: up
+up: ## Start all containers.
+	$(COMPOSE) -f ./docker-compose.yml up -d --force-recreate
+
+.PHONY: recreate
+recreate: ## Recreate all containers.
+	$(COMPOSE) -f ./docker-compose.yml up -d --force-recreate --build
+
 .PHONY: up-database
 up-database: ## Start database container.
-	$(COMPOSE) up -d postgres --force-recreate
+	$(COMPOSE) -f ./docker-compose.yml up -d esp-db --force-recreate
 
 .PHONY: down
 down: ## Stop all containers.
@@ -41,12 +49,12 @@ migrate: ## Run database migrations.
 downgrade: ## Undo last database migration.
 	poetry run alembic downgrade -1
 
-.PHONY: docker-rm
-docker-rm: ## Remove all docker/podman containers.
+.PHONY: remove-containers
+remove-containers: ## Remove all containers.
 	$(CONTAINER_ENGINE) rm -f $$($(CONTAINER_ENGINE) ps -a -q)
 
-.PHONY: docker-rmi
-docker-rmi: ## Remove all downloaded docker/podman images.
+.PHONY: remove-container-images
+remove-container-images: ## Remove all downloaded container images.
 	$(CONTAINER_ENGINE) rmi -f $$($(CONTAINER_ENGINE) images -q)
 
 .PHONY: export-requirements
@@ -64,6 +72,10 @@ patch: ## Bump project version to next patch (bugfix release).
 .PHONY: minor
 minor: ## Bump project version to next minor (feature release).
 	poetry version minor
+
+.PHONY: major
+major: ## Bump project version to next major (breaking change).
+	poetry version major
 
 .PHONY: clean
 clean: ## Clean project's temporary files.
