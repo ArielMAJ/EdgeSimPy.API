@@ -1,6 +1,6 @@
 [tool.poetry]
-name = "edge-sim-py-interface"
-version = "0.1.1"
+name = "edge-sim-py-api"
+version = "1.0.5"
 description = "A FastAPI backend microservice for running EdgeSimPy simulations."
 authors = ["ArielMAJ <ariel.maj@hotmail.com>"]
 readme = "README.md"
