@@ -1,15 +1,11 @@
 services:
-  postgres:
-    image: postgres:16.3
-    restart: always
+  esp-api:
+    build:
+      context: ./
+      dockerfile: ./Dockerfile
+    env_file:
+      - .env.docker
     environment:
-      POSTGRES_DB: ${POSTGRES_DATABASE}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      - APPLICATION_PORT=3000
     ports:
-      - "5432:5432"
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-
-volumes:
-  pgdata:
+      - "${ESP_API_PORT:-3003}:3000"
