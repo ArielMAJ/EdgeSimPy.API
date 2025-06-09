@@ -8,7 +8,7 @@ import numpy as np
 from fastapi_cache.decorator import cache
 from loguru import logger
 
-from src.config.loguru import logger_config
+from src.configs.loguru import logger_config
 from src.exceptions.http_exceptions import AlgorithmException
 from src.middleware.logger_middleware import REQUEST_UUID
 from src.schemas.algorithm_parameters import AlgorithmInputParameters

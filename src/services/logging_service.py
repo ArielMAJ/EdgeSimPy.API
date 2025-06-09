@@ -4,7 +4,7 @@ import httpx
 from fastapi_cache.decorator import cache
 from loguru import logger
 
-from src.config.env import Config
+from src.configs.env import Config
 from src.schemas.log_schema import LogSchema
 from src.utils.json_processor import replace_inf_values
 
